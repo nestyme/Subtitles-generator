@@ -1,0 +1,5 @@
+numpy==1.15.1
+librosa==0.6.2
+scipy==1.0.0
+SpeechRecognition==3.8.1
+youtube-dl==2019.6.8
