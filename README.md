@@ -1,6 +1,6 @@
 # Subtitles-generator
 
-generates transcript for video from link
+online generator transcript for video from link using **Google Speech API** and **youtube_dl**
 
 To install requirements run
 
