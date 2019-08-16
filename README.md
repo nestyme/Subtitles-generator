@@ -8,8 +8,8 @@ To install requirements run
 
 To download video from link run
 
-```python3 donwload.py --url https:/your-link```
+```python3 download_video.py -url https:/your-link```
 
 To recognize and generate transcript run
 
-```python3 recognize.py --video your_video.mp4```
+```python3 recognize.py -video your_video.mp4```
