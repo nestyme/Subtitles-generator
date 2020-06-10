@@ -1,13 +1,41 @@
 import requests
-import subprocess
 import vk_api
 from vk_api import VkUpload
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 import os
+from engine.download_video import download_video
+from engine.recognize import *
+from engine.process_rus import reformat_rus
+
 vk_session = vk_api.VkApi(token='')
 vk = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
+
+
+def video2text(video, vk, event):
+    start = time.time()
+    get_audio(video)
+    split_into_frames('current.wav')
+    files = sorted(glob('engine/samples/*.wav'))
+    print(files)
+    open('result.txt', 'w', encoding='utf-8').write('')
+
+    cnt = 0
+    for file in files:
+        print(file)
+        recognize(file)
+        cnt += 1
+        processed = round(float(cnt/len(files))*100,2)
+        vk.messages.send(
+            user_id=event.user_id,
+            random_id=get_random_id(),
+            message=f'{processed}% processed'
+        )
+    end = time.time()
+    print('elapsed time: {}'.format(end - start))
+
+
 def main():
     session = requests.Session()
     vk = vk_session.get_api()
@@ -16,44 +44,59 @@ def main():
         text = 'try again.'
         try:
             if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
-                print('id{}: "{}"'.format(event.user_id, event.text), end=' ')
-                subprocess.check_output('python3 download_video.py -url {}'.format(event.text),
-                                        shell = True)
-                vk.messages.send(
+                os.system('rm engine/samples/*')
+                print('id{}: "{}"'.format(event.user_id, event.text))
+                if 'https' not in event.text:
+                    vk.messages.send(
                         user_id=event.user_id,
                         random_id=get_random_id(),
-                        message='video uploaded on server'
+                        message='unexpected input'
                     )
-                subprocess.check_output('python3 recognize.py',
-                                       shell = True)
+                    continue
                 vk.messages.send(
-                        user_id=event.user_id,
-                        random_id=get_random_id(),
-                        message='video recognized'
-                    )
-                text = open('result.txt', 'r', encoding='utf-8').read()
+                    user_id=event.user_id,
+                    random_id=get_random_id(),
+                    message='uploading began'
+                )
+                download_video('engine/tmp', event.text)
+                vk.messages.send(
+                    user_id=event.user_id,
+                    random_id=get_random_id(),
+                    message='video uploaded on server'
+                )
+                video2text('engine/tmp*', vk, event)
+
+                vk.messages.send(
+                    user_id=event.user_id,
+                    random_id=get_random_id(),
+                    message='video recognized'
+                )
+
+                with open('engine/result.txt', 'r', encoding='utf-8') as f:
+                    text = f.read().replace('..','.').replace('. .','.')
                 if len(text) < 4000:
                     vk.messages.send(
                         user_id=event.user_id,
                         random_id=get_random_id(),
                         message=text)
                 else:
-                    text_main = text[:int(len(text)/4000)*4000]
-                    text_res = text[int(len(text)/4000)*4000:int(len(text)/4000)*4000+int(len(text)%4000)]
-                    for i in range(0,len(text_main),4000):
+                    text_main = text[:int(len(text) / 4000) * 4000]
+                    text_res = text[int(len(text) / 4000) * 4000:int(len(text) / 4000) * 4000 + int(len(text) % 4000)]
+                    for i in range(0, len(text_main), 4000):
                         vk.messages.send(
                             user_id=event.user_id,
                             random_id=get_random_id(),
-                            message=text[i:i+4000]
+                            message=text[i:i + 4000]
                         )
                     vk.messages.send(user_id=event.user_id,
-                        random_id=get_random_id(),
-                        message=text_res
-                    )
+                                     random_id=get_random_id(),
+                                     message=text_res
+                                     )
                 print('ok')
-                os.system('rm samples/*')
-                os.system('rm tmp.*')
-                os.system('rm current.wav')
+                os.system('rm engine/samples/*')
+                os.system('rm engine/tmp.*')
+                os.system('rm engine/current.wav')
+                os.system('rm engine/result.txt')
                 if not text:
                     vk.messages.send(
                         user_id=event.user_id,
@@ -64,10 +107,11 @@ def main():
                     continue
         except:
             vk.messages.send(
-                        user_id=event.user_id,
-                        random_id=get_random_id(),
-                        message='try again'
-                    )
+                user_id=event.user_id,
+                random_id=get_random_id(),
+                message='try again'
+            )
+
 
 if __name__ == '__main__':
     main()
