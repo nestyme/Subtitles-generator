@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+<div style="background-image: url('https://www.ppt-backgrounds.net/uploads/this-powerpoint-template-shows-a-number-of-cubes-in-a-symmetrical---image.jpeg');">
+<h1 align="center">Subtitiles Generation Service</h1>
+<link rel=stylesheet type=text/css href='{{ url_for("static",filename="theme.css")}}'>
+
+<div style="width:700px;margin:0 auto;text-align:center">
+    <h2>
+    На вход принимается ссылка на Youtube/Google Drive с видео и конвертируется в текст с автоматически расставленной пунктуацией.
+    Время распознавания для дорожек < 2 минут для видео короче 5 минут и не более 5 минут для видео общей длительностью до 40 минут.
+
+    </h2>
+</div>
+<h2>
+<div style="text-align:center">
+    <form align="center" method="POST">
+        <input style="width:400px" name="text">
+        <input type="submit">
+    </form>
+</div>
+</h2>
+
+
+<p align="center">{{ submission }}</p>
+<h2 align="center">{{ text }}</h2>
+</body>
+</html>
