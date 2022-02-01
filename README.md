@@ -1,4 +1,5 @@
 # Subtitles-generator
+!! this project is not under maintanance, so something might not be supported 🤷‍♀️ !!
 
 online generator transcript for video from link using **Google Speech API** and **youtube_dl**
 
